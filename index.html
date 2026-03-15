@@ -40,6 +40,7 @@
             align-items: center;
             color: var(--text-color);
             transition: all 0.5s ease;
+            padding: 40px 0;
         }
 
         @keyframes gradient {
@@ -49,8 +50,8 @@
         }
 
         .container {
-            width: 90%;
-            max-width: 500px;
+            width: 95%;
+            max-width: 800px;
             padding: 40px;
             background: var(--card-bg);
             backdrop-filter: blur(15px);
@@ -86,7 +87,7 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
@@ -98,52 +99,66 @@
             line-height: 1.6;
         }
 
-        .skills {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+        .section-title {
+            margin: 40px 0 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
         }
 
-        .skill-badge {
-            padding: 6px 14px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
+        .repo-card {
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--card-border);
-        }
-
-        .links {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .link-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px;
-            background: var(--text-color);
-            color: #000;
-            text-decoration: none;
             border-radius: 12px;
+            padding: 15px;
+            text-align: left;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .repo-name {
             font-weight: bold;
-            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+            word-break: break-all;
         }
 
-        [data-theme="light"] .link-btn {
-            color: #fff;
-            background: #333;
+        .repo-desc {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            height: 3em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
-        .link-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            filter: brightness(1.1);
+        .repo-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .loader {
+            font-style: italic;
+            opacity: 0.7;
         }
 
         .social-icons {
@@ -175,34 +190,22 @@
         <h1>HK777712</h1>
         <p class="bio">Unity (C#), C++, Python を操るエンジニア。ロボコン関連の組み込みから、3Dシミュレーションまで幅広く開発しています。</p>
 
-        <div class="skills">
-            <span class="skill-badge">C# / Unity</span>
-            <span class="skill-badge">C++ / Embedded</span>
-            <span class="skill-badge">Python / YOLO</span>
-            <span class="skill-badge">Game Dev</span>
-        </div>
-
-        <div class="links">
-            <a href="https://github.com/HK777712?tab=repositories" class="link-btn">
-                <i class="fab fa-github"></i> View My Repositories
-            </a>
-            <a href="https://github.com/HK777712/24NB_unity" class="link-btn">
-                <i class="fas fa-gamepad"></i> Feature Project: 24NB_unity
-            </a>
+        <h2 class="section-title">Projects</h2>
+        <div class="repo-grid" id="repo-container">
+            <p class="loader">Loading latest projects...</p>
         </div>
 
         <div class="social-icons">
-            <a href="https://github.com/HK777712"><i class="fab fa-github"></i></a>
-            <!-- 他のSNSがあればここに追加 -->
+            <a href="https://github.com/HK777712"><i class="fab fa-github"></i> GitHub</a>
         </div>
     </div>
 
     <script>
+        // Theme Toggle
         const toggle = document.getElementById('theme-toggle');
         const body = document.body;
         const icon = toggle.querySelector('i');
 
-        // Check for saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             body.setAttribute('data-theme', savedTheme);
@@ -229,6 +232,53 @@
                 icon.classList.replace('fa-sun', 'fa-moon');
             }
         }
+
+        // GitHub API Integration
+        async function fetchRepos() {
+            const container = document.getElementById('repo-container');
+            try {
+                const response = await fetch('https://api.github.com/users/HK777712/repos?sort=updated&per_page=6');
+                const repos = await response.json();
+                
+                container.innerHTML = '';
+                
+                repos.forEach(repo => {
+                    if (repo.name === 'HK777712.github.io') return; // Skip this portfolio repo itself
+
+                    const card = document.createElement('a');
+                    card.className = 'repo-card';
+                    card.href = repo.html_url;
+                    card.target = '_blank';
+                    
+                    card.innerHTML = `
+                        <div class="repo-name">${repo.name}</div>
+                        <div class="repo-desc">${repo.description || 'No description available.'}</div>
+                        <div class="repo-meta">
+                            <span><i class="fas fa-circle" style="color: ${getLangColor(repo.language)}"></i> ${repo.language || 'Plain'}</span>
+                            <span><i class="far fa-star"></i> ${repo.stargazers_count}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error fetching repos:', error);
+                container.innerHTML = '<p>Failed to load projects. Check console for details.</p>';
+            }
+        }
+
+        function getLangColor(lang) {
+            const colors = {
+                'C#': '#178600',
+                'C++': '#f34b7d',
+                'Python': '#3572A5',
+                'ShaderLab': '#222c37',
+                'HTML': '#e34c26',
+                'JavaScript': '#f1e05a'
+            };
+            return colors[lang] || '#888';
+        }
+
+        fetchRepos();
     </script>
 </body>
 </html>
